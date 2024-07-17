@@ -42,21 +42,23 @@ jobs:
         run:  |
           version=$(./gradlew properties | grep ^version:)
           tag=${GITHUB_REF#refs/*/}
-          dir=omero-ms-image-region_${{ matrix.java }}
-          for file in "$dir"/*
-          do
-            if [ -f "$file" ];then
-              filename=$(basename -- "$file")
-              #extension="${filename##*.}"
-              # name="${filename%.*}"
-              # newname="${name}_b${{github.run_number}}.${extension}"
-              # newname="${name}.${extension}"
-              # echo $newname
-              # mv $dir/$filename $dir/$newname
-              sha256sum $dir/$filename >> SHASUMS
-            fi
+          javaversions=("8" "11")
+          for jv in ${javaversions[@]}; do
+            dir=omero-ms-image-region_$jv
+            for file in "$dir"/*
+            do
+              if [ -f "$file" ];then
+                filename=$(basename -- "$file")
+                #extension="${filename##*.}"
+                # name="${filename%.*}"
+                # newname="${name}_b${{github.run_number}}.${extension}"
+                # newname="${name}.${extension}"
+                # echo $newname
+                # mv $dir/$filename $dir/$newname
+                sha256sum $dir/$filename >> SHASUMS
+              fi
+            done
           done
-          title="$version_b${{github.run_number}}"
           gh release create $tag $dir/*.zip $dir/*.tar SHASUMS --title "$title" --notes-from-tag
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
